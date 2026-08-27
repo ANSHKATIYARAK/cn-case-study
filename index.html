@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Network Core - Topology Visualizer & Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation & Controls -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <h2>CAMPUS CORE</h2>
+                <span class="badge">v2.0-SIM</span>
+            </div>
+            
+            <div class="section-title">Visual Overlays</div>
+            <div class="control-group">
+                <button id="btn-toggle-ospf" class="control-btn">
+                    <span class="btn-icon ospf-icon"></span>
+                    Highlight OSPF Areas
+                </button>
+                <button id="btn-toggle-vlans" class="control-btn">
+                    <span class="btn-icon vlan-icon"></span>
+                    Show VLAN Subnets
+                </button>
+            </div>
+
+            <div class="section-title">Traffic Simulation</div>
+            <div class="sim-list">
+                <div class="sim-card" data-sim="faculty">
+                    <h3>Faculty Database Query</h3>
+                    <p>Simulates secure, high-priority research traffic (DSCP AF41/EF) routing to ISP-A with zero latency.</p>
+                </div>
+                <div class="sim-card" data-sim="student-p2p">
+                    <h3>Hostel Congestion & QoS</h3>
+                    <p>Simulates heavy P2P traffic. Shows CBWFQ scheduling and WRED dropping best-effort packets while faculty traffic remains steady.</p>
+                </div>
+                <div class="sim-card" data-sim="failover">
+                    <h3>OSPF & BFD Link Failover</h3>
+                    <p>Simulates a fiber cut. Shows BFD detecting the failure in 150ms and OSPF instantly rerouting traffic via a redundant path.</p>
+                </div>
+                <div class="sim-card" data-sim="pvlan">
+                    <h3>Hostel Isolation (PVLAN)</h3>
+                    <p>Simulates a student attempting to attack/scan a peer device in the same hostel. Demonstrates Layer 2 Isolated PVLAN block.</p>
+                </div>
+            </div>
+
+            <div class="sim-controls">
+                <button id="btn-stop-sim" class="danger-btn" disabled>Stop Simulation</button>
+            </div>
+        </aside>
+
+        <!-- Main Display Panel -->
+        <main class="main-panel">
+            <header class="main-header">
+                <h1>Interactive Network Topology Visualizer</h1>
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Network Operations Center: ACTIVE</span>
+                </div>
+            </header>
+
+            <div class="canvas-container">
+                <div class="legend">
+                    <div class="legend-item"><span class="legend-dot area0"></span>Area 0 (Core)</div>
+                    <div class="legend-item"><span class="legend-dot area1"></span>Area 1 (Hostels)</div>
+                    <div class="legend-item"><span class="legend-dot area2"></span>Area 2 (Academic)</div>
+                    <div class="legend-item"><span class="legend-dot area3"></span>Area 3 (Lib/Admin)</div>
+                </div>
+                <!-- Interactive SVG Canvas -->
+                <svg id="topology-svg" viewBox="0 0 1000 650" width="100%" height="100%">
+                    <!-- SVG content populated dynamically via JavaScript -->
+                </svg>
+            </div>
+        </main>
+
+        <!-- Details Inspector Panel -->
+        <section class="inspector" id="node-inspector">
+            <div class="inspector-empty" id="inspector-placeholder">
+                <div class="inspect-icon">🔍</div>
+                <h3>Inspector Panel</h3>
+                <p>Click any device or host in the topology to view live parameters, hardware specifications, and its active Cisco IOS CLI configuration.</p>
+            </div>
+            
+            <div class="inspector-content hide" id="inspector-main">
+                <button class="close-inspect" id="btn-close-inspect">&times;</button>
+                <div class="device-header">
+                    <div class="device-avatar" id="inspect-avatar"></div>
+                    <div>
+                        <h2 id="inspect-name">CORE-SW-A</h2>
+                        <span class="device-type-badge" id="inspect-tier">Core Layer</span>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="specs">Specs</button>
+                    <button class="tab-btn" data-tab="config">Cisco Config</button>
+                </div>
+
+                <!-- Tab Specs -->
+                <div class="tab-pane active" id="pane-specs">
+                    <div class="spec-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">Model Platform</span>
+                            <span class="spec-val" id="spec-model">Cisco Catalyst 9500</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">IP Address</span>
+                            <span class="spec-val" id="spec-ip">10.255.255.1/32</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Max Capacity</span>
+                            <span class="spec-val" id="spec-capacity">Up to 6.4 Tbps</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Forwarding Rate</span>
+                            <span class="spec-val" id="spec-rate">Up to 2 Bpps</span>
+                        </div>
+                    </div>
+
+                    <div class="section-title-sm">Active Interfaces</div>
+                    <ul class="port-list" id="inspect-ports">
+                        <!-- Port status list populated by JS -->
+                    </ul>
+                </div>
+
+                <!-- Tab Config -->
+                <div class="tab-pane" id="pane-config">
+                    <div class="code-container">
+                        <button class="copy-btn" id="btn-copy-code">Copy CLI</button>
+                        <pre><code class="language-cisco" id="inspect-code">! CLI commands here</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

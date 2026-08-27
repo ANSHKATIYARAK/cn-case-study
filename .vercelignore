@@ -1,0 +1,14 @@
+node_modules/
+automation/
+server.js
+package-lock.json
+package.json
+generate_docx.js
+write_configs.js
+Handwritten Assignment Guide.docx
+Strategic Architecture and Theoretical Design for a Scalable University Campus Network.docx
+VL2026270102744_CS1.pdf
+Handwritten_Assignment_Guide.md
+temp_extracted/
+extracted_text.txt
+temp.zip

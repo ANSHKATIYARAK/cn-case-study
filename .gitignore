@@ -3,9 +3,3 @@ package-lock.json
 temp.zip
 temp_extracted/
 extracted_text.txt
-# Exclude server configuration from GitHub to force static hosting on Vercel
-package.json
-server.js
-vercel.json
-.vercelignore
-public/

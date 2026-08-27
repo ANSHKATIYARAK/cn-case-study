@@ -1,0 +1,8 @@
+{
+  "name": "cn-casestudy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build completed successfully'"
+  }
+}

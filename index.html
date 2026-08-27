@@ -60,24 +60,69 @@
         <!-- Main Display Panel -->
         <main class="main-panel">
             <header class="main-header">
-                <h1>Interactive Network Topology Visualizer</h1>
+                <h1>Interactive Network Simulator</h1>
+                
+                <!-- View Tabs -->
+                <div class="view-tabs">
+                    <button class="view-tab-btn active" data-view="topology">Topology Map</button>
+                    <button class="view-tab-btn" data-view="ipam">IPAM Subnet Explorer</button>
+                </div>
+
                 <div class="status-indicator">
                     <span class="status-dot online"></span>
-                    <span class="status-text">Network Operations Center: ACTIVE</span>
+                    <span class="status-text">NOC Status: ACTIVE</span>
                 </div>
             </header>
 
             <div class="canvas-container">
-                <div class="legend">
-                    <div class="legend-item"><span class="legend-dot area0"></span>Area 0 (Core)</div>
-                    <div class="legend-item"><span class="legend-dot area1"></span>Area 1 (Hostels)</div>
-                    <div class="legend-item"><span class="legend-dot area2"></span>Area 2 (Academic)</div>
-                    <div class="legend-item"><span class="legend-dot area3"></span>Area 3 (Lib/Admin)</div>
+                <!-- Topology View Pane -->
+                <div id="view-topology" class="view-pane active">
+                    <div class="legend">
+                        <div class="legend-item"><span class="legend-dot area0"></span>Area 0 (Core)</div>
+                        <div class="legend-item"><span class="legend-dot area1"></span>Area 1 (Hostels)</div>
+                        <div class="legend-item"><span class="legend-dot area2"></span>Area 2 (Academic)</div>
+                        <div class="legend-item"><span class="legend-dot area3"></span>Area 3 (Lib/Admin)</div>
+                    </div>
+                    <!-- Interactive SVG Canvas -->
+                    <svg id="topology-svg" viewBox="0 0 1200 750" width="100%" height="100%">
+                        <!-- SVG content populated dynamically via JavaScript -->
+                    </svg>
                 </div>
-                <!-- Interactive SVG Canvas -->
-                <svg id="topology-svg" viewBox="0 0 1000 650" width="100%" height="100%">
-                    <!-- SVG content populated dynamically via JavaScript -->
-                </svg>
+
+                <!-- IPAM View Pane -->
+                <div id="view-ipam" class="view-pane">
+                    <div class="ipam-header">
+                        <h2>IP Address Management (IPAM) Registry</h2>
+                        <div class="ipam-controls">
+                            <input type="text" id="ipam-search" placeholder="Search subnets, VLANs, ranges...">
+                            <select id="ipam-filter-area">
+                                <option value="all">All OSPF Areas</option>
+                                <option value="0">Area 0 (Core)</option>
+                                <option value="1">Area 1 (Hostels)</option>
+                                <option value="2">Area 2 (Academic)</option>
+                                <option value="3">Area 3 (Lib/Admin)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ipam-table-container">
+                        <table class="ipam-table">
+                            <thead>
+                                <tr>
+                                    <th>VLAN</th>
+                                    <th>Purpose / Location</th>
+                                    <th>Subnet CIDR</th>
+                                    <th>Subnet Mask</th>
+                                    <th>Usable IP Address Range</th>
+                                    <th>Broadcast IP</th>
+                                    <th>OSPF Area</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ipam-tbody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </main>
 

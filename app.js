@@ -10,9 +10,9 @@ const DEVICES = {
         capacity: "3.2 - 6.4 Tbps",
         rate: "Up to 2.0 Bpps",
         ports: [
-            { name: "TenGig1/0/1", status: "up", speed: "10 Gbps", desc: "Transit to ACAD-DIST-A" },
-            { name: "TenGig1/0/2", status: "up", speed: "10 Gbps", desc: "Transit to HOSTEL-DIST-A" },
-            { name: "TenGig1/0/3", status: "up", speed: "10 Gbps", desc: "Transit to LIBADMIN-DIST-A" },
+            { name: "TenGig1/0/1", status: "up", speed: "10 Gbps", desc: "Transit to ACAD-DIST" },
+            { name: "TenGig1/0/2", status: "up", speed: "10 Gbps", desc: "Transit to HOSTEL-DIST" },
+            { name: "TenGig1/0/3", status: "up", speed: "10 Gbps", desc: "Transit to LIBADMIN-DIST" },
             { name: "FortyGig1/1/1", status: "up", speed: "40 Gbps", desc: "StackWise Virtual Link (SVL)" }
         ],
         config: `! CORE-SW-A GLOBAL CONFIGURATION
@@ -82,9 +82,9 @@ router ospf 1
         capacity: "3.2 - 6.4 Tbps",
         rate: "Up to 2.0 Bpps",
         ports: [
-            { name: "TenGig1/0/1", status: "up", speed: "10 Gbps", desc: "Transit to ACAD-DIST-B" },
-            { name: "TenGig1/0/2", status: "up", speed: "10 Gbps", desc: "Transit to HOSTEL-DIST-B" },
-            { name: "TenGig1/0/3", status: "up", speed: "10 Gbps", desc: "Transit to LIBADMIN-DIST-B" },
+            { name: "TenGig1/0/1", status: "up", speed: "10 Gbps", desc: "Transit to ACAD-DIST" },
+            { name: "TenGig1/0/2", status: "up", speed: "10 Gbps", desc: "Transit to HOSTEL-DIST" },
+            { name: "TenGig1/0/3", status: "up", speed: "10 Gbps", desc: "Transit to LIBADMIN-DIST" },
             { name: "FortyGig1/1/1", status: "up", speed: "40 Gbps", desc: "StackWise Virtual Link (SVL)" }
         ],
         config: `! CORE-SW-B GLOBAL CONFIGURATION
@@ -146,8 +146,8 @@ router ospf 1
             { name: "TenGig1/0/11", status: "up", speed: "10 Gbps", desc: "Downlink to ACAD-2" },
             { name: "TenGig1/0/12", status: "up", speed: "10 Gbps", desc: "Downlink to ACAD-3" }
         ],
-        config: `! ACAD-DIST-A GLOBAL CONFIGURATION
-hostname ACAD-DIST-A
+        config: `! ACAD-DIST GLOBAL CONFIGURATION
+hostname ACAD-DIST
 !
 vlan 10
  name ACAD1_STUDENT
@@ -269,7 +269,6 @@ class-map match-any HOSTEL-TRAFFIC
 !
 policy-map SHAPE-HOSTELS
  class HOSTEL-TRAFFIC
-  ! Shape to 400 Mbps during peak academic hours (configured via cron / EEM)
   shape average 400000000
 !
 interface TenGigabitEthernet1/0/10
@@ -339,9 +338,9 @@ router ospf 1
         capacity: "Up to 36 Gbps",
         rate: "Flow-dependent",
         ports: [
-            { name: "Gigabit0/0/0", status: "up", speed: "1 Gbps", desc: "Link to ISP-A (Primary)" },
-            { name: "Gigabit0/0/1", status: "up", speed: "1 Gbps", desc: "Transit to CORE-SW-A" },
-            { name: "Gigabit0/0/2", status: "up", speed: "1 Gbps", desc: "iBGP Sync Link to EDGE-B" }
+            { name: "Gig0/0/0", status: "up", speed: "1 Gbps", desc: "Link to ISP-A (Primary)" },
+            { name: "Gig0/0/1", status: "up", speed: "1 Gbps", desc: "Transit to CORE-SW-A" },
+            { name: "Gig0/0/2", status: "up", speed: "1 Gbps", desc: "iBGP Sync Link to EDGE-B" }
         ],
         config: `! EDGE-ROUTER-A GLOBAL CONFIGURATION
 hostname EDGE-ROUTER-A
@@ -404,9 +403,9 @@ router ospf 1
         capacity: "Up to 19.7 Gbps",
         rate: "Flow-dependent",
         ports: [
-            { name: "Gigabit0/0/0", status: "up", speed: "1 Gbps", desc: "Link to ISP-B (Secondary)" },
-            { name: "Gigabit0/0/1", status: "up", speed: "1 Gbps", desc: "Transit to CORE-SW-B" },
-            { name: "Gigabit0/0/2", status: "up", speed: "1 Gbps", desc: "iBGP Sync Link to EDGE-A" }
+            { name: "Gig0/0/0", status: "up", speed: "1 Gbps", desc: "Link to ISP-B (Secondary)" },
+            { name: "Gig0/0/1", status: "up", speed: "1 Gbps", desc: "Transit to CORE-SW-B" },
+            { name: "Gig0/0/2", status: "up", speed: "1 Gbps", desc: "iBGP Sync Link to EDGE-A" }
         ],
         config: `! EDGE-ROUTER-B GLOBAL CONFIGURATION
 hostname EDGE-ROUTER-B
@@ -441,7 +440,7 @@ router bgp 65100
  exit
 !
 route-map ISP-B-IN permit 10
- set local-preference 100  ! Lower preference - secondary backup/hostel overflow
+ set local-preference 100  ! Lower preference
  exit
 !
 router ospf 1
@@ -476,13 +475,11 @@ vlan 99
  name MGMT_VLAN
 exit
 !
-! Global DHCP Snooping & DAI
 ip dhcp snooping
 ip dhcp snooping vlan 10,11,12,99
 no ip dhcp snooping information option
 ip arp inspection vlan 10,11,12,99
 !
-! Configure Client Ports (Edge Ports)
 interface range GigabitEthernet1/0/1 - 40
  switchport mode access
  switchport access vlan 10
@@ -494,7 +491,6 @@ interface range GigabitEthernet1/0/1 - 40
  switchport port-security violation restrict
  exit
 !
-! Configure Faculty Ports
 interface range GigabitEthernet1/0/41 - 44
  switchport mode access
  switchport access vlan 11
@@ -502,7 +498,6 @@ interface range GigabitEthernet1/0/41 - 44
  spanning-tree bpduguard enable
  exit
 !
-! Configure UPOE/mGig Port for Wi-Fi 6 Access Point
 interface GigabitEthernet1/0/45
  description Wi-Fi 6 AP Connection
  switchport mode access
@@ -517,7 +512,6 @@ interface Vlan99
  exit
 ip default-gateway 10.100.31.2
 !
-! Uplink to Distribution Switch (802.1Q Trunk)
 interface TenGigabitEthernet1/1/1
  description Trunk Link to ACAD-DIST
  switchport mode trunk
@@ -535,7 +529,6 @@ interface TenGigabitEthernet1/1/1
         rate: "Up to 500 Mpps",
         ports: [
             { name: "Gig1/0/1", status: "up", speed: "1 Gbps", desc: "Student BYOD Room 101" },
-            { name: "Gig1/0/2", status: "up", speed: "1 Gbps", desc: "Student BYOD Room 102" },
             { name: "mGig1/0/45", status: "up", speed: "2.5 Gbps", desc: "Hostel AP (FlexConnect)" },
             { name: "TenGig1/1/1", status: "up", speed: "10 Gbps", desc: "Trunk to HOSTEL-DIST" }
         ],
@@ -556,7 +549,6 @@ vlan 99
  name MGMT_VLAN
 exit
 !
-! Student BYOD Client Ports (Isolated PVLAN ports)
 interface range GigabitEthernet1/0/1 - 44
  description Student BYOD Ports (Isolated)
  switchport mode private-vlan host
@@ -566,13 +558,11 @@ interface range GigabitEthernet1/0/1 - 44
  ip dhcp snooping limit rate 50
  exit
 !
-! Switch Management IP
 interface Vlan99
  ip address 10.100.31.20 255.255.255.0
  exit
 ip default-gateway 10.100.31.2
 !
-! Promiscuous Uplink to HOSTEL-DIST-A
 interface TenGigabitEthernet1/1/1
  description Promiscuous Uplink to HOSTEL-DIST
  switchport mode private-vlan promiscuous
@@ -581,27 +571,24 @@ interface TenGigabitEthernet1/1/1
     }
 };
 
-// Add remaining devices with boilerplate data for visualization
+// Boilerplate generator for visual nodes
 ["ACAD-2", "ACAD-3", "HOSTEL-2", "LIBRARY", "ADMIN"].forEach(nodeName => {
     if (!DEVICES[nodeName]) {
         let isHostel = nodeName.startsWith("HOSTEL");
         let isLibAdmin = ["LIBRARY", "ADMIN"].includes(nodeName);
-        let tierLabel = "Access Layer";
-        let modelNo = "Cisco Catalyst 9300-48T";
         let specIp = isHostel ? "10.100.8.10/21" : (nodeName === "LIBRARY" ? "10.100.28.10/24" : "10.100.30.10/24");
         let vlanId = isHostel ? "50" : (nodeName === "LIBRARY" ? "60" : "70");
         let distNode = isHostel ? "HOSTEL-DIST" : (isLibAdmin ? "LIBADMIN-DIST" : "ACAD-DIST");
         
         DEVICES[nodeName] = {
             name: nodeName,
-            tier: tierLabel,
-            model: modelNo,
+            tier: "Access Layer",
+            model: "Cisco Catalyst 9300-48T",
             ip: specIp,
             capacity: "176 Gbps (Standalone)",
             rate: "Up to 130 Mpps",
             ports: [
                 { name: "Gig1/0/1", status: "up", speed: "1 Gbps", desc: "User Port" },
-                { name: "Gig1/0/2", status: "up", speed: "1 Gbps", desc: "User Port" },
                 { name: "TenGig1/1/1", status: "up", speed: "10 Gbps", desc: `Trunk to ${distNode}` }
             ],
             config: `! ${nodeName} CONFIGURATION
@@ -627,97 +614,130 @@ interface TenGigabitEthernet1/1/1
     }
 });
 
-// --- 2. TOPOLOGY GRAPH NODES COORDINATES ---
+// Host nodes (branching off access switches)
+const HOST_DEVICES = {
+    "PC-1": { name: "Lab PC 1 (Block 1)", ip: "10.100.16.50", gateway: "10.100.16.1", mac: "00:50:56:AB:CD:01", parent: "ACAD-1" },
+    "IP-Phone": { name: "Faculty IP Phone", ip: "10.100.18.55", gateway: "10.100.18.1", mac: "00:50:56:AB:CD:02", parent: "ACAD-1" },
+    "Laptop-1": { name: "Faculty Laptop (Block 2)", ip: "10.100.22.60", gateway: "10.100.22.1", mac: "00:50:56:AB:CD:03", parent: "ACAD-2" },
+    "CCTV-1": { name: "Security Camera (Block 3)", ip: "10.100.27.80", gateway: "10.100.27.1", mac: "00:50:56:AB:CD:04", parent: "ACAD-3" },
+    "Stud-Laptop": { name: "Student Laptop", ip: "10.100.1.120", gateway: "10.100.0.1", mac: "00:50:56:AB:CD:05", parent: "HOSTEL-1" },
+    "Stud-Console": { name: "Student Console", ip: "10.100.9.140", gateway: "10.100.8.1", mac: "00:50:56:AB:CD:06", parent: "HOSTEL-2" },
+    "Lib-Terminal": { name: "Library Catalog PC", ip: "10.100.28.45", gateway: "10.100.28.1", mac: "00:50:56:AB:CD:07", parent: "LIBRARY" },
+    "Admin-PC": { name: "Admin Workstation", ip: "10.100.30.50", gateway: "10.100.30.1", mac: "00:50:56:AB:CD:08", parent: "ADMIN" }
+};
+
+// --- 2. IPAM DATABASE RECORDSET ---
+const IPAM_REGISTRY = [
+    { vlan: "VLAN 10", desc: "Block 1 Students & Lecture Halls", cidr: "10.100.16.0/23", mask: "255.255.254.0", range: "10.100.16.1 - 10.100.17.254", broadcast: "10.100.17.255", area: "2" },
+    { vlan: "VLAN 11", desc: "Block 1 Faculty Workstations", cidr: "10.100.18.0/24", mask: "255.255.255.0", range: "10.100.18.1 - 10.100.18.254", broadcast: "10.100.18.255", area: "2" },
+    { vlan: "VLAN 12", desc: "Block 1 localized IoT Devices", cidr: "10.100.19.0/24", mask: "255.255.255.0", range: "10.100.19.1 - 10.100.19.254", broadcast: "10.100.19.255", area: "2" },
+    { vlan: "VLAN 20", desc: "Block 2 Students & Lecture Halls", cidr: "10.100.20.0/23", mask: "255.255.254.0", range: "10.100.20.1 - 10.100.21.254", broadcast: "10.100.21.255", area: "2" },
+    { vlan: "VLAN 21", desc: "Block 2 Faculty Workstations", cidr: "10.100.22.0/24", mask: "255.255.255.0", range: "10.100.22.1 - 10.100.22.254", broadcast: "10.100.22.255", area: "2" },
+    { vlan: "VLAN 22", desc: "Block 2 localized IoT Devices", cidr: "10.100.23.0/24", mask: "255.255.255.0", range: "10.100.23.1 - 10.100.23.254", broadcast: "10.100.23.255", area: "2" },
+    { vlan: "VLAN 30", desc: "Block 3 Students & Lecture Halls", cidr: "10.100.24.0/23", mask: "255.255.254.0", range: "10.100.24.1 - 10.100.25.254", broadcast: "10.100.25.255", area: "2" },
+    { vlan: "VLAN 31", desc: "Block 3 Faculty Workstations", cidr: "10.100.26.0/24", mask: "255.255.255.0", range: "10.100.26.1 - 10.100.26.254", broadcast: "10.100.26.255", area: "2" },
+    { vlan: "VLAN 32", desc: "Block 3 localized IoT Devices", cidr: "10.100.27.0/24", mask: "255.255.255.0", range: "10.100.27.1 - 10.100.27.254", broadcast: "10.100.27.255", area: "2" },
+    { vlan: "VLAN 40", desc: "Hostel 1 Student BYOD Clients", cidr: "10.100.0.0/21", mask: "255.255.248.0", range: "10.100.0.1 - 10.100.7.254", broadcast: "10.100.7.255", area: "1" },
+    { vlan: "VLAN 50", desc: "Hostel 2 Student BYOD Clients", cidr: "10.100.8.0/21", mask: "255.255.248.0", range: "10.100.8.1 - 10.100.15.254", broadcast: "10.100.15.255", area: "1" },
+    { vlan: "VLAN 60", desc: "Central Library Public & Guests", cidr: "10.100.28.0/24", mask: "255.255.255.0", range: "10.100.28.1 - 10.100.28.254", broadcast: "10.100.28.255", area: "3" },
+    { vlan: "VLAN 61", desc: "Central Library Staff & Research", cidr: "10.100.29.0/24", mask: "255.255.255.0", range: "10.100.29.1 - 10.100.29.254", broadcast: "10.100.29.255", area: "3" },
+    { vlan: "VLAN 70", desc: "Administration Executive & Staff", cidr: "10.100.30.0/24", mask: "255.255.255.0", range: "10.100.30.1 - 10.100.30.254", broadcast: "10.100.30.255", area: "3" },
+    { vlan: "VLAN 99", desc: "Switch SVI OOB Management Pool", cidr: "10.100.31.0/24", mask: "255.255.255.0", range: "10.100.31.1 - 10.100.31.254", broadcast: "10.100.31.255", area: "3" },
+    { vlan: "Loopbacks", desc: "Dynamic Routing Router IDs", cidr: "10.255.255.0/24", mask: "255.255.255.255", range: "10.255.255.1 - 10.255.255.15 (/32)", broadcast: "N/A", area: "0" },
+    { vlan: "Transit /30", desc: "Core-to-Distribution Inter-Switch Links", cidr: "10.100.255.0/24", mask: "255.255.255.252", range: "10.100.255.1 - 10.100.255.254", broadcast: "N/A", area: "0" }
+];
+
+// --- 3. TOPOLOGY GRAPH COORDINATES ---
 const NODES = {
     // Edge (Tier 0)
-    "ISP-A": { x: 350, y: 50, label: "ISP-A (Primary)", type: "cloud" },
-    "ISP-B": { x: 650, y: 50, label: "ISP-B (Secondary)", type: "cloud" },
-    "EDGE-A": { x: 350, y: 130, label: "EDGE-A (ASR1001-X)", type: "router" },
-    "EDGE-B": { x: 650, y: 130, label: "EDGE-B (Cat 8300)", type: "router" },
+    "ISP-A": { x: 450, y: 50, label: "ISP-A (Primary Link)", type: "cloud" },
+    "ISP-B": { x: 750, y: 50, label: "ISP-B (Secondary Link)", type: "cloud" },
+    "EDGE-A": { x: 450, y: 130, label: "EDGE-A (ASR1001-X)", type: "router" },
+    "EDGE-B": { x: 750, y: 130, label: "EDGE-B (Cat 8300)", type: "router" },
     
     // Core (Tier 1)
-    "CORE-SW-A": { x: 350, y: 220, label: "CORE-SW-A (Cat 9500)", type: "core" },
-    "CORE-SW-B": { x: 650, y: 220, label: "CORE-SW-B (Cat 9500)", type: "core" },
+    "CORE-SW-A": { x: 450, y: 230, label: "CORE-SW-A (Cat 9500)", type: "core" },
+    "CORE-SW-B": { x: 750, y: 230, label: "CORE-SW-B (Cat 9500)", type: "core" },
     
     // Distribution (Tier 2)
-    "ACAD-DIST": { x: 200, y: 350, label: "ACAD-DIST", type: "dist" },
-    "HOSTEL-DIST": { x: 500, y: 350, label: "HOSTEL-DIST", type: "dist" },
-    "LIBADMIN-DIST": { x: 800, y: 350, label: "LIBADMIN-DIST", type: "dist" },
+    "ACAD-DIST": { x: 250, y: 390, label: "ACAD-DIST (ABR)", type: "dist" },
+    "HOSTEL-DIST": { x: 600, y: 390, label: "HOSTEL-DIST (ABR)", type: "dist" },
+    "LIBADMIN-DIST": { x: 950, y: 390, label: "LIBADMIN-DIST (ABR)", type: "dist" },
     
     // Access (Tier 3)
-    "ACAD-1": { x: 100, y: 480, label: "ACAD-1 (Block 1)", type: "access" },
-    "ACAD-2": { x: 200, y: 480, label: "ACAD-2 (Block 2)", type: "access" },
-    "ACAD-3": { x: 300, y: 480, label: "ACAD-3 (Block 3)", type: "access" },
+    "ACAD-1": { x: 120, y: 530, label: "ACAD-1", type: "access" },
+    "ACAD-2": { x: 250, y: 530, label: "ACAD-2", type: "access" },
+    "ACAD-3": { x: 380, y: 530, label: "ACAD-3", type: "access" },
     
-    "HOSTEL-1": { x: 450, y: 480, label: "HOSTEL-1", type: "access" },
-    "HOSTEL-2": { x: 550, y: 480, label: "HOSTEL-2", type: "access" },
+    "HOSTEL-1": { x: 530, y: 530, label: "HOSTEL-1 (PVLAN)", type: "access" },
+    "HOSTEL-2": { x: 670, y: 530, label: "HOSTEL-2 (PVLAN)", type: "access" },
     
-    "LIBRARY": { x: 750, y: 480, label: "LIBRARY", type: "access" },
-    "ADMIN": { x: 850, y: 480, label: "ADMIN", type: "access" }
+    "LIBRARY": { x: 880, y: 530, label: "LIBRARY", type: "access" },
+    "ADMIN": { x: 1020, y: 530, label: "ADMIN", type: "access" },
+
+    // Endpoints (Tier 4)
+    "PC-1": { x: 80, y: 640, label: "PC-1 (V10)", type: "endpoint" },
+    "IP-Phone": { x: 140, y: 640, label: "VoIP (V11)", type: "endpoint" },
+    "Laptop-1": { x: 250, y: 640, label: "Laptop (V21)", type: "endpoint" },
+    "CCTV-1": { x: 380, y: 640, label: "CCTV (V32)", type: "endpoint" },
+    "Stud-Laptop": { x: 530, y: 640, label: "BYOD-1 (V40)", type: "endpoint" },
+    "Stud-Console": { x: 670, y: 640, label: "BYOD-2 (V50)", type: "endpoint" },
+    "Lib-Terminal": { x: 880, y: 640, label: "Terminal (V60)", type: "endpoint" },
+    "Admin-PC": { x: 1020, y: 640, label: "Staff-PC (V70)", type: "endpoint" }
 };
 
 const LINKS = [
     // WAN
-    { src: "ISP-A", dest: "EDGE-A", area: 0 },
-    { src: "ISP-B", dest: "EDGE-B", area: 0 },
+    { src: "ISP-A", dest: "EDGE-A", area: 0, sPort: "Gi0/0/0", dPort: "Fa0/1" },
+    { src: "ISP-B", dest: "EDGE-B", area: 0, sPort: "Gi0/0/0", dPort: "Fa0/1" },
     
     // Edge to Core
-    { src: "EDGE-A", dest: "CORE-SW-A", area: 0 },
-    { src: "EDGE-B", dest: "CORE-SW-B", area: 0 },
-    { src: "EDGE-A", dest: "EDGE-B", area: 0 }, // iBGP link
+    { src: "EDGE-A", dest: "CORE-SW-A", area: 0, sPort: "Gi0/0/1", dPort: "Te1/0/25" },
+    { src: "EDGE-B", dest: "CORE-SW-B", area: 0, sPort: "Gi0/0/1", dPort: "Te1/0/25" },
+    { src: "EDGE-A", dest: "EDGE-B", area: 0, sPort: "Gi0/0/2", dPort: "Gi0/0/2" }, // iBGP
     
     // Core SVL
-    { src: "CORE-SW-A", dest: "CORE-SW-B", area: 0, type: "svl" },
+    { src: "CORE-SW-A", dest: "CORE-SW-B", area: 0, sPort: "Fo1/1/1", dPort: "Fo1/1/1", type: "svl" },
     
     // Core to Dist
-    { src: "CORE-SW-A", dest: "ACAD-DIST", area: 0 },
-    { src: "CORE-SW-B", dest: "ACAD-DIST", area: 0 },
-    { src: "CORE-SW-A", dest: "HOSTEL-DIST", area: 0 },
-    { src: "CORE-SW-B", dest: "HOSTEL-DIST", area: 0 },
-    { src: "CORE-SW-A", dest: "LIBADMIN-DIST", area: 0 },
-    { src: "CORE-SW-B", dest: "LIBADMIN-DIST", area: 0 },
+    { src: "CORE-SW-A", dest: "ACAD-DIST", area: 0, sPort: "Te1/0/1", dPort: "Te1/0/24" },
+    { src: "CORE-SW-B", dest: "ACAD-DIST", area: 0, sPort: "Te1/0/1", dPort: "Te1/0/24" },
+    { src: "CORE-SW-A", dest: "HOSTEL-DIST", area: 0, sPort: "Te1/0/2", dPort: "Te1/0/24" },
+    { src: "CORE-SW-B", dest: "HOSTEL-DIST", area: 0, sPort: "Te1/0/2", dPort: "Te1/0/24" },
+    { src: "CORE-SW-A", dest: "LIBADMIN-DIST", area: 0, sPort: "Te1/0/3", dPort: "Te1/0/24" },
+    { src: "CORE-SW-B", dest: "LIBADMIN-DIST", area: 0, sPort: "Te1/0/3", dPort: "Te1/0/24" },
     
     // Dist to Access
-    { src: "ACAD-DIST", dest: "ACAD-1", area: 2 },
-    { src: "ACAD-DIST", dest: "ACAD-2", area: 2 },
-    { src: "ACAD-DIST", dest: "ACAD-3", area: 2 },
+    { src: "ACAD-DIST", dest: "ACAD-1", area: 2, sPort: "Te1/0/10", dPort: "Te1/1/1" },
+    { src: "ACAD-DIST", dest: "ACAD-2", area: 2, sPort: "Te1/0/11", dPort: "Te1/1/1" },
+    { src: "ACAD-DIST", dest: "ACAD-3", area: 2, sPort: "Te1/0/12", dPort: "Te1/1/1" },
     
-    { src: "HOSTEL-DIST", dest: "HOSTEL-1", area: 1 },
-    { src: "HOSTEL-DIST", dest: "HOSTEL-2", area: 1 },
+    { src: "HOSTEL-DIST", dest: "HOSTEL-1", area: 1, sPort: "Te1/0/10", dPort: "Te1/1/1" },
+    { src: "HOSTEL-DIST", dest: "HOSTEL-2", area: 1, sPort: "Te1/0/11", dPort: "Te1/1/1" },
     
-    { src: "LIBADMIN-DIST", dest: "LIBRARY", area: 3 },
-    { src: "LIBADMIN-DIST", dest: "ADMIN", area: 3 }
+    { src: "LIBADMIN-DIST", dest: "LIBRARY", area: 3, sPort: "Te1/0/10", dPort: "Te1/1/1" },
+    { src: "LIBADMIN-DIST", dest: "ADMIN", area: 3, sPort: "Te1/0/11", dPort: "Te1/1/1" },
+
+    // Access to Endpoints
+    { src: "ACAD-1", dest: "PC-1", area: 2, sPort: "Gi1/0/1", dPort: "NIC", type: "eth" },
+    { src: "ACAD-1", dest: "IP-Phone", area: 2, sPort: "Gi1/0/12", dPort: "LAN", type: "eth" },
+    { src: "ACAD-2", dest: "Laptop-1", area: 2, sPort: "Gi1/0/20", dPort: "NIC", type: "eth" },
+    { src: "ACAD-3", dest: "CCTV-1", area: 2, sPort: "Gi1/0/5", dPort: "NIC", type: "eth" },
+    { src: "HOSTEL-1", dest: "Stud-Laptop", area: 1, sPort: "Gi1/0/1", dPort: "WLAN", type: "eth" },
+    { src: "HOSTEL-2", dest: "Stud-Console", area: 1, sPort: "Gi1/0/3", dPort: "NIC", type: "eth" },
+    { src: "LIBRARY", dest: "Lib-Terminal", area: 3, sPort: "Gi1/0/2", dPort: "NIC", type: "eth" },
+    { src: "ADMIN", dest: "Admin-PC", area: 3, sPort: "Gi1/0/10", dPort: "NIC", type: "eth" }
 ];
 
-// OSPF Area Boundary Shapes (Polygons coordinates)
-const OSPF_AREAS = [
-    {
-        id: "area0",
-        points: "280,100 720,100 720,270 280,270",
-        label: "OSPF Area 0 (Backbone)",
-        color: "var(--area-0)"
-    },
-    {
-        id: "area1",
-        points: "380,310 620,310 620,540 380,540",
-        label: "OSPF Area 1 (Hostels)",
-        color: "var(--area-1)"
-    },
-    {
-        id: "area2",
-        points: "50,310 350,310 350,540 50,540",
-        label: "OSPF Area 2 (Academic Blocks)",
-        color: "var(--area-2)"
-    },
-    {
-        id: "area3",
-        points: "680,310 950,310 950,540 680,540",
-        label: "OSPF Area 3 (Library & Administration)",
-        color: "var(--area-3)"
-    }
+// Areas Layout (Clean backing boxes)
+const OSPF_AREAS_LAY = [
+    { id: "lay-area0", x: 260, y: 100, width: 680, height: 180, label: "OSPF AREA 0 (BACKBONE)", color: "var(--area-0)" },
+    { id: "lay-area2", x: 40, y: 320, width: 440, height: 380, label: "OSPF AREA 2 (ACADEMIC BLOCKS)", color: "var(--area-2)" },
+    { id: "lay-area1", x: 490, y: 320, width: 280, height: 380, label: "OSPF AREA 1 (HOSTELS)", color: "var(--area-1)" },
+    { id: "lay-area3", x: 780, y: 320, width: 380, height: 380, label: "OSPF AREA 3 (LIBRARY & ADMIN)", color: "var(--area-3)" }
 ];
 
-// --- 3. DOM SELECTION ---
+// --- 4. DOM SELECTION ---
 const svgCanvas = document.getElementById("topology-svg");
 const inspectorPlaceholder = document.getElementById("inspector-placeholder");
 const inspectorMain = document.getElementById("inspector-main");
@@ -736,123 +756,186 @@ const btnStopSim = document.getElementById("btn-stop-sim");
 const btnToggleOspf = document.getElementById("btn-toggle-ospf");
 const btnToggleVlans = document.getElementById("btn-toggle-vlans");
 
-// Tabs
+// Tabs View Controllers
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabPanes = document.querySelectorAll(".tab-pane");
+const viewTabBtns = document.querySelectorAll(".view-tab-btn");
+const viewPanes = document.querySelectorAll(".view-pane");
 
-// Simulation Cards
+// Simulation trigger cards
 const simCards = document.querySelectorAll(".sim-card");
 
-// --- 4. CONFIG STATE VARIABLES ---
+// IPAM table controls
+const ipamTbody = document.getElementById("ipam-tbody");
+const ipamSearch = document.getElementById("ipam-search");
+const ipamFilterArea = document.getElementById("ipam-filter-area");
+
+// --- 5. INITIAL CONFIG STATES ---
 let selectedNode = null;
 let activeSim = null;
 let simIntervals = [];
 let showOspfOverlay = false;
 let showVlanOverlay = false;
 
-// --- 5. INITIAL SVG TOPOLOGY DRAWING ---
+// --- 6. GEOMETRIC LINK TERMINATION PORT INTERPOLATOR ---
+function getPortLabelCoords(x1, y1, x2, y2, d) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len === 0) return { x: x1, y: y1 };
+    
+    // Interpolated coordinates at distance 'd'
+    const x = x1 + (dx / len) * d;
+    const y = y1 + (dy / len) * d;
+    
+    // Orthogonal offset to prevent text overlaying the line
+    const ox = -(dy / len) * 8;
+    const oy = (dx / len) * 8;
+    
+    return { x: x + ox, y: y + oy };
+}
+
+// --- 7. SVG TOPOLOGY RENDER ENGINE ---
 function renderTopology() {
-    svgCanvas.innerHTML = ""; // Clear canvas
+    svgCanvas.innerHTML = "";
     
-    // Create filters and markers
+    // 1. Defs, filters, symbols
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    
-    // Cloud icon definition
-    const cloudPath = "M25,15 C25,12.2 22.8,10 20,10 C19.6,10 19.3,10.1 18.9,10.2 C17.8,7.7 15.1,6 12,6 C7.6,6 4,9.6 4,14 C4,14.3 4.0,14.7 4.1,15 C1.7,16 0,18.3 0,21 C0,24.9 3.1,28 7,28 L24,28 C28.4,28 32,24.4 32,20 C32,16.5 29,15.6 25,15 Z";
-    
     defs.innerHTML = `
-        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
-        </marker>
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+        <filter id="nodeGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
+        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+        </marker>
     `;
     svgCanvas.appendChild(defs);
 
-    // 1. Draw OSPF Area Boundary Shapes
-    OSPF_AREAS.forEach(area => {
-        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        polygon.setAttribute("points", area.points);
-        polygon.setAttribute("class", `area-outline ${area.id}`);
-        polygon.setAttribute("fill", "transparent");
-        polygon.setAttribute("stroke-width", "2");
-        polygon.setAttribute("stroke", area.color);
-        polygon.setAttribute("id", `poly-${area.id}`);
+    // 2. Draw Backing OSPF Areas (Fills with very low opacity, toggled via state)
+    OSPF_AREAS_LAY.forEach(area => {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", area.x);
+        rect.setAttribute("y", area.y);
+        rect.setAttribute("width", area.width);
+        rect.setAttribute("height", area.height);
+        rect.setAttribute("rx", "14");
+        rect.setAttribute("ry", "14");
+        rect.setAttribute("id", area.id);
         
-        // Label inside OSPF area
-        const coords = area.points.split(" ")[0].split(",");
-        const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        labelText.setAttribute("x", parseFloat(coords[0]) + 15);
-        labelText.setAttribute("y", parseFloat(coords[1]) + 20);
-        labelText.setAttribute("fill", area.color);
-        labelText.setAttribute("font-size", "10px");
-        labelText.setAttribute("font-weight", "bold");
-        labelText.setAttribute("class", `area-outline ${area.id}`);
-        labelText.textContent = area.label;
+        // Dynamic opacity depending on active state
+        rect.setAttribute("fill", showOspfOverlay ? `${area.color}0B` : "transparent");
+        rect.setAttribute("stroke", showOspfOverlay ? area.color : "transparent");
+        rect.setAttribute("stroke-width", "1.5");
+        rect.setAttribute("stroke-dasharray", "4 4");
+        rect.style.transition = "var(--transition-smooth)";
         
-        svgCanvas.appendChild(polygon);
-        svgCanvas.appendChild(labelText);
+        svgCanvas.appendChild(rect);
+        
+        // Header Text block
+        if (showOspfOverlay) {
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", area.x + 16);
+            text.setAttribute("y", area.y + 24);
+            text.setAttribute("fill", area.color);
+            text.setAttribute("font-size", "10px");
+            text.setAttribute("font-weight", "bold");
+            text.setAttribute("opacity", "0.75");
+            text.textContent = area.label;
+            svgCanvas.appendChild(text);
+        }
     });
 
-    // 2. Draw Links
-    LINKS.forEach((link, idx) => {
-        const srcNode = NODES[link.src];
-        const destNode = NODES[link.dest];
-        if (!srcNode || !destNode) return;
-        
+    // 3. Draw Links
+    LINKS.forEach(link => {
+        const src = NODES[link.src];
+        const dest = NODES[link.dest];
+        if (!src || !dest) return;
+
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", srcNode.x);
-        line.setAttribute("y1", srcNode.y);
-        line.setAttribute("x2", destNode.x);
-        line.setAttribute("y2", destNode.y);
+        line.setAttribute("x1", src.x);
+        line.setAttribute("y1", src.y);
+        line.setAttribute("x2", dest.x);
+        line.setAttribute("y2", dest.y);
         
         let linkClass = "link normal";
         if (link.type === "svl") {
             linkClass = "link normal svl-link";
             line.setAttribute("stroke-dasharray", "4 2");
+        } else if (link.type === "eth") {
+            linkClass = "link normal eth-link";
+            line.setAttribute("stroke-width", "1.2");
+            line.setAttribute("opacity", "0.4");
         } else {
             linkClass = `link area${link.area}`;
         }
         
         line.setAttribute("class", linkClass);
         line.setAttribute("id", `link-${link.src}-${link.dest}`);
-        
-        // Add dynamic tooltip to links
-        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-        title.textContent = `${link.src} ⟷ ${link.dest}`;
-        line.appendChild(title);
-
         svgCanvas.appendChild(line);
+
+        // Render port interface labels (Only for infrastructure links, not endpoint links)
+        if (link.type !== "eth" && link.sPort && link.dPort) {
+            const sCoords = getPortLabelCoords(src.x, src.y, dest.x, dest.y, 25);
+            const dCoords = getPortLabelCoords(dest.x, dest.y, src.x, src.y, 25);
+            
+            const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t1.setAttribute("x", sCoords.x);
+            t1.setAttribute("y", sCoords.y);
+            t1.setAttribute("class", "port-label-svg");
+            t1.setAttribute("text-anchor", "middle");
+            t1.textContent = link.sPort;
+            
+            const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t2.setAttribute("x", dCoords.x);
+            t2.setAttribute("y", dCoords.y);
+            t2.setAttribute("class", "port-label-svg");
+            t2.setAttribute("text-anchor", "middle");
+            t2.textContent = link.dPort;
+            
+            svgCanvas.appendChild(t1);
+            svgCanvas.appendChild(t2);
+        }
     });
 
-    // 3. Draw Nodes
+    // 4. Draw Nodes
     Object.keys(NODES).forEach(nodeKey => {
         const node = NODES[nodeKey];
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         group.setAttribute("class", "node-group");
         group.setAttribute("id", `node-${nodeKey}`);
-        group.addEventListener("click", () => selectDevice(nodeKey));
+        
+        // Disable inspection click for hosts to keep layout clean
+        if (node.type !== "endpoint") {
+            group.addEventListener("click", () => selectDevice(nodeKey));
+        }
 
-        // Node Glow Ring (Glows when selected)
-        const glow = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        glow.setAttribute("cx", node.x);
-        glow.setAttribute("cy", node.y);
-        glow.setAttribute("r", 18);
-        glow.setAttribute("class", "node-outer-glow");
-        glow.setAttribute("stroke", "var(--color-primary)");
-        glow.setAttribute("stroke-width", "3");
-        group.appendChild(glow);
+        // Selection ring
+        const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        ring.setAttribute("cx", node.x);
+        ring.setAttribute("cy", node.y);
+        ring.setAttribute("r", 18);
+        ring.setAttribute("class", "node-outer-glow");
+        ring.setAttribute("stroke", "var(--color-primary)");
+        ring.setAttribute("stroke-width", "3");
+        group.appendChild(ring);
 
-        // Node Shape
+        // Core Shapes & Colors
         let shape;
         if (node.type === "cloud") {
             shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shape.setAttribute("d", cloudPath);
-            shape.setAttribute("transform", `translate(${node.x - 16}, ${node.y - 14}) scale(1.0)`);
-            shape.setAttribute("fill", "#64748b");
+            shape.setAttribute("d", "M25,15 C25,12.2 22.8,10 20,10 C19.6,10 19.3,10.1 18.9,10.2 C17.8,7.7 15.1,6 12,6 C7.6,6 4,9.6 4,14 C4,14.3 4.0,14.7 4.1,15 C1.7,16 0,18.3 0,21 C0,24.9 3.1,28 7,28 L24,28 C28.4,28 32,24.4 32,20 C32,16.5 29,15.6 25,15 Z");
+            shape.setAttribute("transform", `translate(${node.x - 16}, ${node.y - 14})`);
+            shape.setAttribute("fill", "#475569");
             shape.setAttribute("class", "node-base");
+        } else if (node.type === "endpoint") {
+            // Smaller shapes for host terminals
+            shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            shape.setAttribute("cx", node.x);
+            shape.setAttribute("cy", node.y);
+            shape.setAttribute("r", 8);
+            shape.setAttribute("class", "node-base");
+            shape.setAttribute("fill", "#475569");
         } else {
             shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             shape.setAttribute("cx", node.x);
@@ -860,7 +943,6 @@ function renderTopology() {
             shape.setAttribute("r", 14);
             shape.setAttribute("class", "node-base");
             
-            // Define colors by hardware tier
             let color = "#cbd5e1";
             if (node.type === "core") color = "var(--area-0)";
             else if (node.type === "dist") color = "var(--color-amber)";
@@ -870,73 +952,95 @@ function renderTopology() {
         }
         group.appendChild(shape);
 
-        // Device Icon Details inside circle
-        if (node.type !== "cloud") {
-            const innerSymbol = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            innerSymbol.setAttribute("x", node.x);
-            innerSymbol.setAttribute("y", node.y + 4);
-            innerSymbol.setAttribute("font-size", "11px");
-            innerSymbol.setAttribute("fill", "#090d16");
-            innerSymbol.setAttribute("text-anchor", "middle");
-            innerSymbol.setAttribute("font-weight", "bold");
+        // Core Text Symbol Overlay
+        if (node.type !== "cloud" && node.type !== "endpoint") {
+            const sym = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            sym.setAttribute("x", node.x);
+            sym.setAttribute("y", node.y + 4);
+            sym.setAttribute("fill", "#090d16");
+            sym.setAttribute("font-size", "10px");
+            sym.setAttribute("font-weight", "bold");
+            sym.setAttribute("text-anchor", "middle");
             
-            if (node.type === "core") innerSymbol.textContent = "C";
-            else if (node.type === "dist") innerSymbol.textContent = "D";
-            else if (node.type === "access") innerSymbol.textContent = "A";
-            else if (node.type === "router") innerSymbol.textContent = "R";
+            if (node.type === "core") sym.textContent = "C";
+            else if (node.type === "dist") sym.textContent = "D";
+            else if (node.type === "access") sym.textContent = "A";
+            else if (node.type === "router") sym.textContent = "R";
             
-            group.appendChild(innerSymbol);
+            group.appendChild(sym);
+        }
+
+        // Host symbol overlay
+        if (node.type === "endpoint") {
+            const sym = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            sym.setAttribute("x", node.x);
+            sym.setAttribute("y", node.y + 2.5);
+            sym.setAttribute("fill", "#ffffff");
+            sym.setAttribute("font-size", "7px");
+            sym.setAttribute("font-weight", "bold");
+            sym.setAttribute("text-anchor", "middle");
+            sym.textContent = "H";
+            group.appendChild(sym);
         }
 
         // Labels
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
         label.setAttribute("x", node.x);
-        label.setAttribute("y", node.y + 28);
+        label.setAttribute("y", node.y + (node.type === "endpoint" ? 20 : 28));
         label.setAttribute("class", "node-label");
         label.textContent = nodeKey;
         group.appendChild(label);
 
-        // Subtext / Desc
+        // Subtext / IP Overlay
         const subtext = document.createElementNS("http://www.w3.org/2000/svg", "text");
         subtext.setAttribute("x", node.x);
-        subtext.setAttribute("y", node.y + 38);
+        subtext.setAttribute("y", node.y + (node.type === "endpoint" ? 28 : 38));
         subtext.setAttribute("class", "node-subtext");
         
-        let desc = "";
-        if (node.type === "cloud") desc = "WAN Gateway";
-        else if (node.type === "core") desc = "Core SVL Node";
-        else if (node.type === "dist") desc = "MDF Distribution";
-        else if (node.type === "access") desc = "IDF Switch";
-        else if (node.type === "router") desc = "Edge Routers";
-        subtext.textContent = desc;
+        if (showVlanOverlay) {
+            // Display Subnet mapping
+            if (node.type === "endpoint" && HOST_DEVICES[nodeKey]) {
+                subtext.textContent = HOST_DEVICES[nodeKey].ip;
+            } else if (DEVICES[nodeKey]) {
+                subtext.textContent = DEVICES[nodeKey].ip.split(" ")[0];
+            } else {
+                subtext.textContent = "";
+            }
+            subtext.setAttribute("fill", "var(--color-primary)");
+        } else {
+            // Standard Descriptions
+            let desc = "";
+            if (node.type === "cloud") desc = "WAN Gateway";
+            else if (node.type === "core") desc = "Core SVL Node";
+            else if (node.type === "dist") desc = "MDF Dist ABR";
+            else if (node.type === "access") desc = "IDF Access Switch";
+            else if (node.type === "endpoint" && HOST_DEVICES[nodeKey]) desc = HOST_DEVICES[nodeKey].name;
+            else if (node.type === "router") desc = "Edge Gateway";
+            subtext.textContent = desc;
+            subtext.setAttribute("fill", "var(--text-secondary)");
+        }
+        
         group.appendChild(subtext);
-
         svgCanvas.appendChild(group);
     });
 }
 
-// --- 6. INTERACTION LOGIC (SELECT DEVICES) ---
+// --- 8. INSPECTOR CONTROLLER ---
 function selectDevice(nodeKey) {
-    // Update SVG selection state
     document.querySelectorAll(".node-group").forEach(el => el.classList.remove("selected"));
-    const selectedGroup = document.getElementById(`node-${nodeKey}`);
-    if (selectedGroup) {
-        selectedGroup.classList.add("selected");
-    }
+    const group = document.getElementById(`node-${nodeKey}`);
+    if (group) group.classList.add("selected");
 
     selectedNode = nodeKey;
     const data = DEVICES[nodeKey];
     if (!data) return;
 
-    // Reveal Inspector
     inspectorPlaceholder.classList.add("hide");
     inspectorMain.classList.remove("hide");
 
-    // Populates fields
     inspectName.textContent = data.name;
     inspectTier.textContent = data.tier;
     
-    // Set color matching tier
     inspectAvatar.className = "device-avatar";
     if (data.tier === "Core Layer") {
         inspectAvatar.classList.add("core");
@@ -957,7 +1061,6 @@ function selectDevice(nodeKey) {
     specCapacity.textContent = data.capacity;
     specRate.textContent = data.rate;
 
-    // Populate Ports
     inspectPorts.innerHTML = "";
     data.ports.forEach(port => {
         const li = document.createElement("li");
@@ -972,69 +1075,80 @@ function selectDevice(nodeKey) {
         inspectPorts.appendChild(li);
     });
 
-    // Populate Config code
     inspectCode.textContent = data.config;
 }
 
-// --- 7. OVERLAY SYSTEMS (OSPF & VLANS) ---
-function toggleOspfOverlay() {
-    showOspfOverlay = !showOspfOverlay;
-    btnToggleOspf.classList.toggle("active", showOspfOverlay);
-    document.querySelectorAll(".area-outline").forEach(el => {
-        el.classList.toggle("active", showOspfOverlay);
-    });
-}
-
-function toggleVlanOverlay() {
-    showVlanOverlay = !showVlanOverlay;
-    btnToggleVlans.classList.toggle("active", showVlanOverlay);
+// --- 9. VIEW CONTROLLER (TOPOLOGY VS IPAM TABLE) ---
+function switchView(e) {
+    const viewName = e.target.getAttribute("data-view");
     
-    // If VLAN overlay active, temporarily rewrite subtexts with Subnet IDs
-    Object.keys(NODES).forEach(nodeKey => {
-        const node = NODES[nodeKey];
-        const group = document.getElementById(`node-${nodeKey}`);
-        if (!group) return;
-        const subtextEl = group.querySelector(".node-subtext");
-        if (!subtextEl) return;
-        
-        if (showVlanOverlay) {
-            const devData = DEVICES[nodeKey];
-            if (devData) {
-                // Shorten IP display for node subtexts
-                subtextEl.textContent = devData.ip.split(" ")[0];
-                subtextEl.setAttribute("fill", "var(--color-primary)");
-            }
-        } else {
-            // Restore normal descriptions
-            let desc = "";
-            if (node.type === "cloud") desc = "WAN Gateway";
-            else if (node.type === "core") desc = "Core SVL Node";
-            else if (node.type === "dist") desc = "MDF Distribution";
-            else if (node.type === "access") desc = "IDF Switch";
-            else if (node.type === "router") desc = "Edge Routers";
-            subtextEl.textContent = desc;
-            subtextEl.setAttribute("fill", "var(--text-secondary)");
+    viewTabBtns.forEach(btn => btn.classList.remove("active"));
+    e.target.classList.add("active");
+    
+    viewPanes.forEach(pane => {
+        pane.classList.remove("active");
+        if (pane.id === `view-${viewName}`) {
+            pane.classList.add("active");
         }
     });
+
+    if (viewName === "ipam") {
+        renderIpamTable();
+    }
 }
 
-// --- 8. REAL-TIME TRAFFIC FLOW SIMULATOR ---
+// --- 10. IPAM RENDER ENGINE & FILTERING ---
+function renderIpamTable() {
+    const searchVal = ipamSearch.value.toLowerCase();
+    const areaFilter = ipamFilterArea.value;
+
+    ipamTbody.innerHTML = "";
+
+    const filtered = IPAM_REGISTRY.filter(row => {
+        // Search text check
+        const matchText = row.vlan.toLowerCase().includes(searchVal) || 
+                          row.desc.toLowerCase().includes(searchVal) || 
+                          row.cidr.toLowerCase().includes(searchVal) || 
+                          row.range.toLowerCase().includes(searchVal);
+        
+        // Area check
+        const matchArea = areaFilter === "all" || row.area === areaFilter;
+
+        return matchText && matchArea;
+    });
+
+    if (filtered.length === 0) {
+        ipamTbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No matching subnets found.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td style="font-weight: 600; color: var(--color-primary);">${row.vlan}</td>
+            <td>${row.desc}</td>
+            <td style="font-family: var(--font-mono); font-weight: 600;">${row.cidr}</td>
+            <td style="font-family: var(--font-mono);">${row.mask}</td>
+            <td style="font-family: var(--font-mono); color: #cbd5e1;">${row.range}</td>
+            <td style="font-family: var(--font-mono); color: var(--text-muted);">${row.broadcast}</td>
+            <td><span class="area-badge area-${row.area}">OSPF Area ${row.area}</span></td>
+        `;
+        ipamTbody.appendChild(tr);
+    });
+}
+
+// --- 11. TRAFFIC FLOW SIMULATOR ---
 function clearSimulations() {
-    // Clear links classes
     document.querySelectorAll(".link").forEach(l => {
         l.classList.remove("active");
         l.classList.remove("cut");
     });
     
-    // Clear intervals
     simIntervals.forEach(clearInterval);
     simIntervals = [];
     
-    // Clear running animated dots
-    const packets = document.querySelectorAll(".packet");
-    packets.forEach(p => p.remove());
+    document.querySelectorAll(".packet").forEach(p => p.remove());
     
-    // Restore port lists if any was affected by cut
     if (DEVICES["CORE-SW-A"]) {
         DEVICES["CORE-SW-A"].ports[0].status = "up";
     }
@@ -1068,7 +1182,6 @@ function startSimulation(simType) {
     }
 }
 
-// Helper to spawn a packet dot and animate it along coordinates
 function animatePacket(pathPoints, packetClass = "packet", speedFactor = 1) {
     if (pathPoints.length < 2) return;
     
@@ -1082,7 +1195,7 @@ function animatePacket(pathPoints, packetClass = "packet", speedFactor = 1) {
     let endPoint = NODES[pathPoints[1]];
     let progress = 0;
     
-    const duration = 1200 / speedFactor; // ms for entire path
+    const duration = 1500 / speedFactor; // speed of traversal
     const segDuration = duration / (pathPoints.length - 1);
     let lastTime = performance.now();
 
@@ -1099,7 +1212,6 @@ function animatePacket(pathPoints, packetClass = "packet", speedFactor = 1) {
         if (progress >= 1) {
             segmentIdx++;
             if (segmentIdx >= pathPoints.length - 1) {
-                // Arrived at destination
                 dot.remove();
                 return;
             }
@@ -1108,7 +1220,6 @@ function animatePacket(pathPoints, packetClass = "packet", speedFactor = 1) {
             progress = 0;
         }
 
-        // Interpolate position
         const cx = startPoint.x + (endPoint.x - startPoint.x) * progress;
         const cy = startPoint.y + (endPoint.y - startPoint.y) * progress;
         
@@ -1121,114 +1232,103 @@ function animatePacket(pathPoints, packetClass = "packet", speedFactor = 1) {
     requestAnimationFrame(step);
 }
 
-// --- SIMULATION RUNNERS ---
-
-// Scenario A: Faculty Research Access
+// Simulation A: Faculty query (High Priority)
 function runFacultySimulation() {
-    // Active routes
-    const link1 = document.getElementById("link-ACAD-DIST-ACAD-1");
-    const link2 = document.getElementById("link-CORE-SW-A-ACAD-DIST");
-    const link3 = document.getElementById("link-EDGE-A-CORE-SW-A");
-    const link4 = document.getElementById("link-ISP-A-EDGE-A");
+    const link1 = document.getElementById("link-ACAD-1-PC-1");
+    const link2 = document.getElementById("link-ACAD-DIST-ACAD-1");
+    const link3 = document.getElementById("link-CORE-SW-A-ACAD-DIST");
+    const link4 = document.getElementById("link-EDGE-A-CORE-SW-A");
+    const link5 = document.getElementById("link-ISP-A-EDGE-A");
     
-    [link1, link2, link3, link4].forEach(l => {
-        if (l) l.classList.add("active");
-    });
+    [link1, link2, link3, link4, link5].forEach(l => { if (l) l.classList.add("active"); });
 
-    const path = ["ACAD-1", "ACAD-DIST", "CORE-SW-A", "EDGE-A", "ISP-A"];
+    const path = ["PC-1", "ACAD-1", "ACAD-DIST", "CORE-SW-A", "EDGE-A", "ISP-A"];
     
-    // Spawn packets continually
     const interval = setInterval(() => {
-        animatePacket(path, "faculty", 1.2);
-    }, 400);
-    
+        animatePacket(path, "faculty", 1.25);
+    }, 450);
     simIntervals.push(interval);
 }
 
-// Scenario B: Student P2P congestion & QoS mitigation
+// Simulation B: Student P2P congestion showing WRED random drops
 function runStudentP2PSimulation() {
-    // Highlight links
-    const linkF1 = document.getElementById("link-ACAD-DIST-ACAD-1");
-    const linkF2 = document.getElementById("link-CORE-SW-A-ACAD-DIST");
-    const linkF3 = document.getElementById("link-EDGE-A-CORE-SW-A");
-    const linkF4 = document.getElementById("link-ISP-A-EDGE-A");
+    const linkF1 = document.getElementById("link-ACAD-1-PC-1");
+    const linkF2 = document.getElementById("link-ACAD-DIST-ACAD-1");
+    const linkF3 = document.getElementById("link-CORE-SW-A-ACAD-DIST");
+    const linkF4 = document.getElementById("link-EDGE-A-CORE-SW-A");
+    const linkF5 = document.getElementById("link-ISP-A-EDGE-A");
     
-    const linkS1 = document.getElementById("link-HOSTEL-DIST-HOSTEL-1");
-    const linkS2 = document.getElementById("link-CORE-SW-B-HOSTEL-DIST");
-    const linkS3 = document.getElementById("link-EDGE-B-CORE-SW-B");
-    const linkS4 = document.getElementById("link-ISP-B-EDGE-B");
+    const linkS1 = document.getElementById("link-HOSTEL-1-Stud-Laptop");
+    const linkS2 = document.getElementById("link-HOSTEL-DIST-HOSTEL-1");
+    const linkS3 = document.getElementById("link-CORE-SW-B-HOSTEL-DIST");
+    const linkS4 = document.getElementById("link-EDGE-B-CORE-SW-B");
+    const linkS5 = document.getElementById("link-ISP-B-EDGE-B");
     
-    [linkF1, linkF2, linkF3, linkF4, linkS1, linkS2, linkS3, linkS4].forEach(l => {
+    [linkF1, linkF2, linkF3, linkF4, linkF5, linkS1, linkS2, linkS3, linkS4, linkS5].forEach(l => {
         if (l) l.classList.add("active");
     });
 
-    const facultyPath = ["ACAD-1", "ACAD-DIST", "CORE-SW-A", "EDGE-A", "ISP-A"];
-    const studentPath = ["HOSTEL-1", "HOSTEL-DIST", "CORE-SW-B", "EDGE-B", "ISP-B"];
+    const facultyPath = ["PC-1", "ACAD-1", "ACAD-DIST", "CORE-SW-A", "EDGE-A", "ISP-A"];
+    const studentPath = ["Stud-Laptop", "HOSTEL-1", "HOSTEL-DIST", "CORE-SW-B", "EDGE-B", "ISP-B"];
 
-    // Faculty traffic runs smoothly (High priority - green packets)
+    // Faculty traffic flows cleanly (Green packets)
     const intF = setInterval(() => {
-        animatePacket(facultyPath, "faculty", 1.2);
+        animatePacket(facultyPath, "faculty", 1.25);
     }, 450);
 
-    // Student traffic streams heavy (Best Effort / Scavenger - amber packets)
-    // To demonstrate WRED congestion control: some student packets are randomly destroyed mid-flight!
+    // Student traffic is heavy, experiences WRED drops at CORE-SW-B (Amber packets)
     const intS = setInterval(() => {
-        // Spawn 2 packet streams to simulate heavy load
-        animatePacket(studentPath, "student", 0.9);
+        animatePacket(studentPath, "student", 0.95);
         
-        // This packet represents a WRED drop scenario (drops mid-route)
+        // This flow gets dropped at CORE-SW-B to simulate congestion drops
         setTimeout(() => {
             if (!activeSim) return;
-            const dropPath = ["HOSTEL-1", "HOSTEL-DIST", "CORE-SW-B"];
-            animatePacket(dropPath, "student", 0.9);
+            const dropPath = ["Stud-Laptop", "HOSTEL-1", "HOSTEL-DIST", "CORE-SW-B"];
+            animatePacket(dropPath, "student", 0.95);
             
-            // Create a small red explosion/ring at Core-B to show drop
+            // Render red ring explosion at Core-B
             const cB = NODES["CORE-SW-B"];
-            const dropIndicator = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            dropIndicator.setAttribute("cx", cB.x);
-            dropIndicator.setAttribute("cy", cB.y);
-            dropIndicator.setAttribute("r", 5);
-            dropIndicator.setAttribute("fill", "none");
-            dropIndicator.setAttribute("stroke", "var(--color-red)");
-            dropIndicator.setAttribute("stroke-width", "2");
-            svgCanvas.appendChild(dropIndicator);
+            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            ring.setAttribute("cx", cB.x);
+            ring.setAttribute("cy", cB.y);
+            ring.setAttribute("r", 5);
+            ring.setAttribute("fill", "none");
+            ring.setAttribute("stroke", "var(--color-red)");
+            ring.setAttribute("stroke-width", "2");
+            svgCanvas.appendChild(ring);
             
-            // Animate ring expansion and fade
-            let r = 5;
-            let op = 1;
-            function fadeRing() {
-                if (!activeSim) { dropIndicator.remove(); return; }
+            let r = 5, op = 1;
+            function fade() {
+                if (!activeSim) { ring.remove(); return; }
                 r += 0.8;
                 op -= 0.05;
-                dropIndicator.setAttribute("r", r);
-                dropIndicator.setAttribute("opacity", op);
-                if (op > 0) requestAnimationFrame(fadeRing);
-                else dropIndicator.remove();
+                ring.setAttribute("r", r);
+                ring.setAttribute("opacity", op);
+                if (op > 0) requestAnimationFrame(fade);
+                else ring.remove();
             }
-            fadeRing();
+            fade();
         }, 225);
-    }, 500);
+    }, 600);
 
     simIntervals.push(intF, intS);
 }
 
-// Scenario C: OSPF and BFD Link Failover
+// Simulation C: Fiber cut link failure & sub-second BFD reconvergence
 function runFailoverSimulation() {
-    // Show standard path links
     const linkNormal1 = document.getElementById("link-ACAD-DIST-ACAD-1");
     const linkNormal2 = document.getElementById("link-CORE-SW-B-ACAD-DIST");
     const linkFailLink = document.getElementById("link-CORE-SW-A-ACAD-DIST");
     
-    // Draw the failure link CORE-SW-A to ACAD-DIST as CUT (pulsing red)
+    // Draw the failing link CORE-SW-A to ACAD-DIST as CUT (pulsing red)
     if (linkFailLink) linkFailLink.classList.add("cut");
     if (linkNormal1) linkNormal1.classList.add("active");
     if (linkNormal2) linkNormal2.classList.add("active");
     
-    // Adjust port status in Inspector if currently viewing CORE-SW-A
     if (selectedNode === "CORE-SW-A") {
         const ports = document.querySelectorAll(".port-dot");
         if (ports.length > 0) {
-            ports[0].className = "port-dot down"; // Mark TenGig1/0/1 as down
+            ports[0].className = "port-dot down";
             ports[0].parentNode.lastChild.textContent = " DOWN (10 Gbps)";
         }
     }
@@ -1236,41 +1336,36 @@ function runFailoverSimulation() {
         DEVICES["CORE-SW-A"].ports[0].status = "down";
     }
 
-    // Failover path (Rerouted through Core-B)
-    const reroutedPath = ["ACAD-1", "ACAD-DIST", "CORE-SW-B", "CORE-SW-A", "EDGE-A", "ISP-A"];
+    // Redirect route (Dynamic routing convergence path via Core-B)
+    const reroutedPath = ["PC-1", "ACAD-1", "ACAD-DIST", "CORE-SW-B", "CORE-SW-A", "EDGE-A", "ISP-A"];
     
     const linkBackbone = document.getElementById("link-CORE-SW-A-CORE-SW-B");
     const linkCoreEdge = document.getElementById("link-EDGE-A-CORE-SW-A");
     const linkEdgeISP = document.getElementById("link-ISP-A-EDGE-A");
-    [linkBackbone, linkCoreEdge, linkEdgeISP].forEach(l => {
-        if (l) l.classList.add("active");
-    });
+    [linkBackbone, linkCoreEdge, linkEdgeISP].forEach(l => { if (l) l.classList.add("active"); });
 
-    // Spawn packets taking the rerouted OSPF path
     const interval = setInterval(() => {
-        animatePacket(reroutedPath, "faculty", 1.1);
+        animatePacket(reroutedPath, "faculty", 1.15);
     }, 450);
 
     simIntervals.push(interval);
 }
 
-// Scenario D: Hostel Isolated PVLAN Protection
+// Simulation D: Hostel PVLAN Local Isolation Block
 function runPVLANSimulation() {
-    // Highlight local links inside Hostel 1
-    const linkHostelAccess = document.getElementById("link-HOSTEL-DIST-HOSTEL-1");
+    const linkHostelAccess = document.getElementById("link-HOSTEL-1-Stud-Laptop");
     if (linkHostelAccess) linkHostelAccess.classList.add("active");
 
-    const host1Loc = NODES["HOSTEL-1"];
-    
-    // We simulate a packet going from a client node in Hostel 1 to another client node.
-    // The packet must rise up to the access switch (HOSTEL-1), but the switch immediately blocks it!
+    const host1 = NODES["HOSTEL-1"];
+    const endpoint = NODES["Stud-Laptop"];
+
+    // A student on BYOD endpoint attempts to send traffic to the access switch targeting another local node
     const int = setInterval(() => {
-        // Spawn packet starting slightly offset to represent Room 101 device
         const packet = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         packet.setAttribute("r", 4.5);
         packet.setAttribute("class", "packet student");
-        packet.setAttribute("cx", host1Loc.x - 20);
-        packet.setAttribute("cy", host1Loc.y + 50); // From below (rooms area)
+        packet.setAttribute("cx", endpoint.x);
+        packet.setAttribute("cy", endpoint.y);
         svgCanvas.appendChild(packet);
 
         let progress = 0;
@@ -1281,33 +1376,31 @@ function runPVLANSimulation() {
             progress += 0.04;
             
             if (stage === 0) {
-                // Interpolate from Room 101 to Access Switch
-                const cx = (host1Loc.x - 20) + (20 * progress);
-                const cy = (host1Loc.y + 50) - (50 * progress);
+                // Rising up to the access switch
+                const cx = endpoint.x + ((host1.x - endpoint.x) * progress);
+                const cy = endpoint.y + ((host1.y - endpoint.y) * progress);
                 packet.setAttribute("cx", cx);
                 packet.setAttribute("cy", cy);
                 
                 if (progress >= 1) {
                     stage = 1;
                     progress = 0;
-                    // Change packet to Red to represent drop/block
                     packet.setAttribute("class", "packet blocked");
                 }
             } else {
-                // Drop: Packet fades out and falls down/disappears
+                // Dropping: Packet fades out and falls back
                 packet.setAttribute("opacity", 1 - progress);
-                packet.setAttribute("cy", host1Loc.y + (20 * progress));
+                packet.setAttribute("cy", host1.y + (20 * progress));
                 
-                // Show a brief "BLOCKED" label near the switch
                 if (progress <= 0.05) {
                     const blockText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    blockText.setAttribute("x", host1Loc.x);
-                    blockText.setAttribute("y", host1Loc.y - 12);
+                    blockText.setAttribute("x", host1.x);
+                    blockText.setAttribute("y", host1.y - 14);
                     blockText.setAttribute("fill", "var(--color-red)");
-                    blockText.setAttribute("font-size", "8px");
+                    blockText.setAttribute("font-size", "7.5px");
                     blockText.setAttribute("font-weight", "bold");
                     blockText.setAttribute("text-anchor", "middle");
-                    blockText.textContent = "PVLAN BLOCKED";
+                    blockText.textContent = "PVLAN ISOLATED";
                     svgCanvas.appendChild(blockText);
                     
                     setTimeout(() => blockText.remove(), 800);
@@ -1322,20 +1415,18 @@ function runPVLANSimulation() {
         }
         
         requestAnimationFrame(animateLocal);
-    }, 900);
+    }, 850);
 
     simIntervals.push(int);
 }
 
-// --- 9. VIEW TAB CONTROLLER ---
+// --- 12. TAB SWITCHER (SPECS VS CONFIG) ---
 function switchTab(e) {
     const tabName = e.target.getAttribute("data-tab");
     
-    // Toggle active buttons
     tabBtns.forEach(btn => btn.classList.remove("active"));
     e.target.classList.add("active");
     
-    // Toggle active panes
     tabPanes.forEach(pane => {
         pane.classList.remove("active");
         if (pane.id === `pane-${tabName}`) {
@@ -1344,11 +1435,11 @@ function switchTab(e) {
     });
 }
 
-// --- 10. SETUP EVENT LISTENERS ---
+// --- 13. BOOTSTRAP INITIALIZATION ---
 function init() {
     renderTopology();
 
-    // Node inspector close/placeholder behavior
+    // Inspector close button
     btnCloseInspect.addEventListener("click", () => {
         document.querySelectorAll(".node-group").forEach(el => el.classList.remove("selected"));
         inspectorMain.classList.add("hide");
@@ -1356,8 +1447,15 @@ function init() {
         selectedNode = null;
     });
 
-    // Tab buttons
+    // Inspector specs vs config tabs
     tabBtns.forEach(btn => btn.addEventListener("click", switchTab));
+
+    // View switcher tabs (Topology vs IPAM)
+    viewTabBtns.forEach(btn => btn.addEventListener("click", switchView));
+
+    // IPAM Search and Filter Event Listeners
+    ipamSearch.addEventListener("input", renderIpamTable);
+    ipamFilterArea.addEventListener("change", renderIpamTable);
 
     // Simulation triggers
     simCards.forEach(card => {
@@ -1367,14 +1465,22 @@ function init() {
         });
     });
 
-    // Stop Simulation
     btnStopSim.addEventListener("click", clearSimulations);
 
-    // Overlays
-    btnToggleOspf.addEventListener("click", toggleOspfOverlay);
-    btnToggleVlans.addEventListener("click", toggleVlanOverlay);
+    // Overlays toggles
+    btnToggleOspf.addEventListener("click", () => {
+        showOspfOverlay = !showOspfOverlay;
+        btnToggleOspf.classList.toggle("active", showOspfOverlay);
+        renderTopology(); // Redraw with backgrounds
+    });
+    
+    btnToggleVlans.addEventListener("click", () => {
+        showVlanOverlay = !showVlanOverlay;
+        btnToggleVlans.classList.toggle("active", showVlanOverlay);
+        renderTopology(); // Redraw with subnets
+    });
 
-    // Copy to clipboard
+    // Copy to clipboard CLI config
     btnCopyCode.addEventListener("click", () => {
         navigator.clipboard.writeText(inspectCode.textContent).then(() => {
             const oldText = btnCopyCode.textContent;
@@ -1389,9 +1495,8 @@ function init() {
         });
     });
 
-    // Default Select CORE-SW-A on load
+    // Default Select CORE-SW-A on start
     selectDevice("CORE-SW-A");
 }
 
-// Launch on page load
 window.addEventListener("DOMContentLoaded", init);

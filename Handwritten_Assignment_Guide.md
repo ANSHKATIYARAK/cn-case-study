@@ -15,10 +15,10 @@
 *   Establish strong security boundaries using Private VLANs (PVLANs), DHCP Snooping, and Dynamic ARP Inspection (DAI).
 *   Implement sub-second link recovery using Multi-Area OSPF and Bidirectional Forwarding Detection (BFD).
 
-### 5. The Hierarchical Three-Tier Model:
-*   **Access Layer**: Provides physical connection endpoints for users, APs, and IoT. Operates at Layer 2. Initiates QoS tagging.
-*   **Distribution Layer**: Aggregates access switches, acts as the Layer 2/3 boundary (default gateways via HSRP), and filters traffic.
-*   **Core Layer**: The high-speed backbone. Focuses strictly on fast IP forwarding. Operating at Layer 3, it links distribution switches and edge routers.
+### 5. The Hierarchical Three-Tier Model & Switch Models:
+*   **Access Layer**: Provides physical connection endpoints for users, APs, and IoT. Operates at Layer 2. Initiates QoS tagging. (Equipment: Cisco Catalyst 9300 Series switches).
+*   **Distribution Layer**: Aggregates access switches, acts as the Layer 2/3 boundary (default gateways via HSRP), and filters traffic. (Equipment: Cisco Catalyst 9300 or 9500 Series switches).
+*   **Core Layer**: The high-speed backbone. Focuses strictly on fast IP forwarding. Operating at Layer 3, it links distribution switches and edge routers. (Equipment: Cisco Catalyst 9500 Series switches).
 
 ---
 
@@ -37,23 +37,37 @@
                  +------------+------------+
                  |                         |
         +--------+---------+      +--------+---------+
-        |    CORE-SW-A     |======|    CORE-SW-B     | (OSPF Area 0 - Backbone)
+        |    CORE-SW-A     |======|    CORE-SW-B     | (OSPF Area 0 - Backbone: Catalyst 9500)
         +--------+---------+  SVL +--------+---------+
                  |                         |
         +--------+-------------------------+--------+  (Redundant Layer 3 /30 Links)
         |                         |                         |
 +-------+-------+         +-------+-------+         +-------+-------+
-|   ACAD-DIST   |         |  HOSTEL-DIST  |         | LIBADMIN-DIST | (MDF Dist. Switches)
+|   ACAD-DIST   |         |  HOSTEL-DIST  |         | LIBADMIN-DIST | (MDF Catalyst 9500)
 +-------+-------+         +-------+-------+         +-------+-------+
    (OSPF Area 2)             (OSPF Area 1)             (OSPF Area 3)
         | (Trunks)                | (PVLANs)                | (Trunks)
 +-------+-------+         +-------+-------+         +-------+-------+
-|  Access Stacks|         |  Access Stacks|         |  Access Stacks| (IDF Access Switches)
+|  Access Stacks|         |  Access Stacks|         |  Access Stacks| (IDF Catalyst 9300)
 | (ACAD-1/2/3)  |         |  (HOSTEL-1/2) |         | (LIB / ADMIN) |
 +-------+-------+         +-------+-------+         +-------+-------+
         |                         |                         |
   [Faculty/PCs]            [Student BYODs]           [Research/Admin]
 ```
+
+### Diagram Execution & OSPF Area Labeling:
+1.  **OSPF Area Enclosures**: When copying this diagram, draw colored boundaries or circles around the components to show the OSPF areas clearly:
+    *   **Area 0 (Backbone)**: Enclose the Core switches (`CORE-SW-A` and `CORE-SW-B`) and their SVL link.
+    *   **Area 1 (Hostels)**: Enclose the `HOSTEL-DIST` and `Access Stacks (HOSTEL-1/2)`.
+    *   **Area 2 (Academic)**: Enclose the `ACAD-DIST` and `Access Stacks (ACAD-1/2/3)`.
+    *   **Area 3 (Library/Admin)**: Enclose the `LIBADMIN-DIST` and `Access Stacks (LIB / ADMIN)`.
+2.  **Interface Labels**: Label the trunk lines as Layer 2 trunks and core-to-distribution lines as Layer 3 routed links (/30 subnets).
+
+### Recommended Hardware Models:
+*   **Core Layer Switches**: Cisco Catalyst 9500 Series (high-performance, StackWise Virtual supported).
+*   **Distribution Layer Switches**: Cisco Catalyst 9300 or 9500 Series (Layer 3 routing, HSRP gateway).
+*   **Access Layer Switches**: Cisco Catalyst 9300 Series (Layer 2 stackable, PoE support, QoS marking).
+*   **Edge Routers**: Cisco ASR 1001-X and Catalyst 8300 Series.
 
 ---
 

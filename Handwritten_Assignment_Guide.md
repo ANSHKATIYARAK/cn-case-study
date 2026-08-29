@@ -63,15 +63,30 @@
     *   **Area 3 (Library/Admin)**: Enclose the `LIBADMIN-DIST` and `Access Stacks (LIB / ADMIN)`.
 2.  **Interface Labels**: Label the trunk lines as Layer 2 trunks and core-to-distribution lines as Layer 3 routed links (/30 subnets).
 
-### Recommended Hardware Models:
-*   **Core Layer Switches**: Cisco Catalyst 9500 Series (high-performance, StackWise Virtual supported).
-*   **Distribution Layer Switches**: Cisco Catalyst 9300 or 9500 Series (Layer 3 routing, HSRP gateway).
-*   **Access Layer Switches**: Cisco Catalyst 9300 Series (Layer 2 stackable, PoE support, QoS marking).
-*   **Edge Routers**: Cisco ASR 1001-X and Catalyst 8300 Series.
+---
+
+## 📄 Page 3: Hardware Selection (Switches & Routers)
+To support over 2,500 simultaneous users and guarantee uninterrupted access, the following enterprise-grade Cisco hardware has been selected for each tier of the hierarchical model:
+
+### 1. Edge Routing (WAN & Internet): Cisco Catalyst 8300 Series / ASR 1001-X
+*   **Role**: Acts as the secure gateway to the ISPs using eBGP, synchronizes paths via iBGP, and handles outbound NAT/PAT mapping.
+*   **Selection Rationale**: Provides high-throughput hardware routing, deep packet inspection, and the advanced security features necessary for a campus edge boundary.
+
+### 2. Core Layer (OSPF Area 0): Cisco Catalyst 9500 Series
+*   **Role**: Functions as the ultra-fast routing backplane. Two units are combined using StackWise Virtual (SVL) to eliminate Spanning Tree loops and enable active-active multi-path forwarding.
+*   **Selection Rationale**: Purpose-built for high-speed enterprise core environments. It easily supports 50ms BFD keepalives to guarantee sub-second link recovery (under 150ms) in the event of a fiber cut.
+
+### 3. Distribution Layer (OSPF Areas 1, 2, 3): Cisco Catalyst 9300 Series
+*   **Role**: Operates as Area Border Routers (ABRs) to summarize building subnets. These switches also run HSRP to provide a Virtual IP (VIP) default gateway to the client VLANs.
+*   **Selection Rationale**: Delivers robust Layer 3 capabilities and hardware-accelerated QoS policy enforcement. This is critical for bandwidth shaping and ensuring faculty traffic is prioritized during peak hours.
+
+### 4. Access Layer (Edge IDF Closets): Cisco Catalyst 9300 Series
+*   **Role**: Provides physical connectivity, Power-over-Ethernet (PoE), and edge classification for QoS DSCP markings.
+*   **Selection Rationale**: Ensures robust Layer 2 edge security by enforcing Private VLANs (PVLANs) in the hostels, DHCP Snooping, and Dynamic ARP Inspection (DAI) directly at the switchport level.
 
 ---
 
-## 📄 Page 3: Logical VLSM IP Subnetting Design
+## 📄 Page 4: Logical VLSM IP Subnetting Design
 Explain that Variable Length Subnet Masking (VLSM) is used to prevent IP address wasting by mapping subnet sizes directly to the user density of each building.
 *   **Base Allocation**: Private class block `10.100.0.0/16` (65,536 IPs).
 *   **Formula Used**: \(2^h - 2 \ge N\) (where \(h\) is host bits, and \(N\) is maximum hosts).
@@ -80,19 +95,16 @@ Explain that Variable Length Subnet Masking (VLSM) is used to prevent IP address
 | Location / Building | User Density | Required Prefix | Subnet Allocated | Usable Host Range |
 | :--- | :---: | :---: | :--- | :--- |
 | **Hostels 1 & 2** | 2,000 / building | /21 | `10.100.0.0/21`<br>`10.100.8.0/21` | `10.100.0.1 - 10.100.7.254`<br>`10.100.8.1 - 10.100.15.254` |
-| **Academic Block 1** | 1,000 hosts | /22 | `10.100.16.0/22` (Sub-partitioned below) | |
-| *   *Students* | 500 hosts | /23 | `10.100.16.0/23` | `10.100.16.1 - 10.100.17.254` |
-| *   *Faculty* | 250 hosts | /24 | `10.100.18.0/24` | `10.100.18.1 - 10.100.18.254` |
-| *   *IoT & VoIP* | 250 hosts | /24 | `10.100.19.0/24` | `10.100.19.1 - 10.100.19.254` |
-| **Academic Block 2** | 1,000 hosts | /22 | `10.100.20.0/22` | (Sub-divided same as Block 1) |
-| **Academic Block 3** | 1,000 hosts | /22 | `10.100.24.0/22` | (Sub-divided same as Block 1) |
+| **Academic Block 1** | 1,000 hosts | /22 | `10.100.16.0/22` | `10.100.16.1 - 10.100.19.254` |
+| **Academic Block 2** | 1,000 hosts | /22 | `10.100.20.0/22` | `10.100.20.1 - 10.100.23.254` |
+| **Academic Block 3** | 1,000 hosts | /22 | `10.100.24.0/22` | `10.100.24.1 - 10.100.27.254` |
 | **Central Library** | 500 hosts | /23 | `10.100.28.0/23` | `10.100.28.1 - 10.100.29.254` |
 | **Administration** | 250 hosts | /24 | `10.100.30.0/24` | `10.100.30.1 - 10.100.30.254` |
 
 ---
 
-## 📄 Page 4: VLAN Segmentation & IPAM Registry
-Explain that VLANs are mapped 1:1 with subnets to isolate broadcast traffic (resolving the slow speed issue) and apply security rules.
+## 📄 Page 5: VLAN Segmentation & IPAM Registry
+Explain that VLANs are mapped 1:1 with subnets to isolate broadcast traffic and apply security rules.
 
 ### VLAN Layout Table:
 | VLAN ID | Subnet CIDR | Subnet Mask | Gateway IP | Description & Access Policy |
@@ -107,8 +119,8 @@ Explain that VLANs are mapped 1:1 with subnets to isolate broadcast traffic (res
 
 ---
 
-## 📄 Page 5: Dynamic Routing Design (OSPF & BGP)
-Explain how traffic is dynamically routed internally (within the campus) and externally (to the Internet).
+## 📄 Page 6: Dynamic Routing Design (OSPF & BGP)
+Explain how traffic is dynamically routed internally and externally.
 
 ### 1. Interior Routing: Multi-Area OSPF
 To prevent a single link flap from recalculating routing tables across the whole campus, the network is divided into OSPF Areas:
@@ -124,113 +136,71 @@ To prevent a single link flap from recalculating routing tables across the whole
 
 ---
 
-## 📄 Page 6: Redundancy & High Availability (HA)
+## 📄 Page 7: Redundancy & High Availability (HA)
 Explain how the design prevents single points of failure (SPOF):
 1.  **Core Virtualization (StackWise Virtual - SVL)**:
     *   Combines `CORE-SW-A` and `CORE-SW-B` into a single logical switch.
-    *   Eliminates Spanning Tree Protocol (STP) blocks on redundant distribution links, enabling active-active multi-path forwarding.
+    *   Eliminates STP blocks on redundant distribution links, enabling active-active multi-path forwarding.
 2.  **First Hop Redundancy (HSRP)**:
     *   Active-Active default gateway redundancy deployed at the Distribution Layer.
-    *   Virtual IP acts as default gateway (e.g., `10.100.16.1`). If Dist-A fails, Dist-B takes over the Virtual IP in under a second.
+    *   Virtual IP acts as default gateway. If Dist-A fails, Dist-B takes over the Virtual IP in under a second.
 3.  **Sub-second Link Failover (BFD)**:
     *   Bidirectional Forwarding Detection (BFD) runs on all core-to-distribution fiber links.
-    *   Helps detect physical path failures in **150 milliseconds** (sending keepalives every 50ms), allowing OSPF to bypass default dead-timers (40s) and reroute traffic instantly.
+    *   Helps detect physical path failures in **150 milliseconds**, allowing OSPF to bypass default dead-timers (40s) and reroute traffic instantly.
 
 ---
 
-## 📄 Page 7: Cybersecurity & Layer 2 Security Policies
-Explain the security measures deployed at the Access switches (extreme edge) to protect the campus:
+## 📄 Page 8: Cybersecurity & Layer 2 Security Policies
+Explain the security measures deployed at the Access switches to protect the campus:
 
 1.  **Private VLANs (PVLAN) in Hostels**:
     *   Hostel access switches configure student ports as **Isolated PVLAN ports**.
-    *   Student devices can only talk to the promiscuous uplink (Internet gateway); they *cannot* communicate with or scan other student devices. This halts malware propagation.
-2.  **DHCP Snooping**:
-    *   Filters out rogue DHCP servers. Access ports are untrusted; only uplinks connecting to the authorized DHCP server are marked as trusted.
-3.  **Dynamic ARP Inspection (DAI)**:
-    *   Validates Address Resolution Protocol (ARP) packets against the DHCP snooping binding table to block Man-in-the-Middle (MitM) and ARP spoofing attacks.
-4.  **BPDU Guard & Portfast**:
-    *   Applied to all end-user ports to transition link states instantly while disabling ports if a rogue switch is connected (preventing loop generation).
+    *   Student devices can only talk to the promiscuous uplink; they *cannot* communicate with other student devices.
+2.  **DHCP Snooping**: Filters out rogue DHCP servers. Access ports are untrusted; only uplinks are marked as trusted.
+3.  **Dynamic ARP Inspection (DAI)**: Validates ARP packets against the DHCP snooping binding table to block Man-in-the-Middle attacks.
+4.  **BPDU Guard & Portfast**: Applied to end-user ports to transition link states instantly while disabling ports if a rogue switch is connected.
 
 ---
 
-## 📄 Page 8: Quality of Service (QoS) & Traffic Engineering
+## 📄 Page 9: Quality of Service (QoS) & Traffic Engineering
 Explain the QoS queuing design that guarantees bandwidth for Faculty while restricting recreational traffic:
 1.  **Classification & Marking (Access Layer)**:
-    *   Faculty traffic: Marked with high-priority DSCP class **AF41** (Assured Forwarding) or **EF** (Expedited Forwarding for VoIP).
-    *   Student traffic: Marked as **Best Effort** (DSCP 0) or **Scavenger** (CS1) for P2P protocols.
+    *   Faculty: Marked with high-priority DSCP class **AF41** or **EF**.
+    *   Student: Marked as **Best Effort** (DSCP 0) or **Scavenger** (CS1) for P2P protocols.
 2.  **Queuing & Scheduling (Distribution / Core)**:
-    *   **Class-Based Weighted Fair Queuing (CBWFQ)** allocates dedicated queue weight to Faculty traffic.
-    *   **Weighted Random Early Detection (WRED)** is activated on outbound interfaces. During network congestion, WRED selectively drops Scavenger/Best-Effort student packets early, while ensuring faculty packets are delivered with zero loss.
-3.  **Hostel Shaping**:
-    *   Hostel distribution links apply policy maps to hard-limit hostel bandwidth egress to **400 Mbps** during peak study hours.
+    *   **CBWFQ** allocates dedicated queue weight to Faculty traffic.
+    *   **WRED** is activated on outbound interfaces; selectively drops Scavenger/Best-Effort student packets early during congestion.
+3.  **Hostel Shaping**: Policy maps hard-limit hostel bandwidth egress to **400 Mbps** during peak study hours.
 
 ---
 
-## 📄 Page 9: High-Yield CLI Configurations (Core & Access)
-*(Write these simplified config scripts to show how the design is configured in Cisco IOS)*
+## 📄 Page 10: High-Yield CLI Configurations & Design Verification
 
 ### 1. CORE-SW-A (OSPF & BFD Config)
 ```cisco
 hostname CORE-SW-A
 !
-interface Loopback0
- ip address 10.255.255.1 255.255.255.255
- exit
-!
 interface TenGigabitEthernet1/0/1
- description Link to ACAD-DIST
- no switchport
- ip address 10.100.255.1 255.255.255.252
  ip ospf network point-to-point
  bfd interval 50 min_rx 50 multiplier 3
  ip ospf bfd
- exit
-!
-router ospf 1
- router-id 10.255.255.1
- passive-interface default
- no passive-interface TenGigabitEthernet1/0/1
- network 10.100.255.0 0.0.0.3 area 0
- network 10.255.255.1 0.0.0.0 area 0
 ```
 
-### 2. HOSTEL-1 (PVLAN & Access Security Config)
+### 2. HOSTEL-1 (PVLAN Config)
 ```cisco
-hostname HOSTEL-1
-!
 vlan 40
  private-vlan primary
  private-vlan association 401
 vlan 401
  private-vlan isolated
-exit
-!
-ip dhcp snooping
-ip dhcp snooping vlan 40,99
 !
 interface range GigabitEthernet1/0/1 - 24
  switchport mode private-vlan host
  switchport private-vlan host-association 40 401
- spanning-tree portfast
- spanning-tree bpduguard enable
- ip dhcp snooping limit rate 50
- exit
-!
-interface TenGigabitEthernet1/1/1
- description Promiscuous Uplink to HOSTEL-DIST
- switchport mode private-vlan promiscuous
- switchport private-vlan mapping 40 401
- exit
 ```
 
----
-
-## 📄 Page 10: Conclusion & Reference Architecture Verification
-### 1. Design Verification:
-*   The three-tier model isolates failure domains, ensuring a broadcast storm in a hostel cannot take down the administration or registrar databases.
-*   OSPF route summarization reduces core switch routing table sizes by **80%**, accelerating path routing lookups.
-*   HSRP combined with BFD guarantees that link failure detection and traffic rerouting happen in less than **150 milliseconds**, which is completely unnoticeable during voice calls or active database queries.
-*   Private VLANs ensure client-to-client isolation within the hostels, eliminating internal network scanning and containment of infected devices.
-
-### 2. Final Architecture Summary:
-This design represents a modern, modular, and resilient campus network architecture. By implementing VLSM, multi-area OSPF routing, first-hop redundancy, and strict access-layer cybersecurity controls, the campus is fully prepared to host over 2,500 active endpoints with high availability and deterministic performance.
+### 3. Design Verification Summary:
+*   **Failure Isolation**: The three-tier model isolates failure domains.
+*   **Table Compression**: OSPF route summarization reduces core routing table sizes by 80%.
+*   **Transparent Failover**: HSRP/BFD guarantees traffic rerouting in less than 150 milliseconds.
+*   **L2 Mitigation**: Private VLANs ensure client-to-client isolation within the hostels, ensuring deterministic performance.

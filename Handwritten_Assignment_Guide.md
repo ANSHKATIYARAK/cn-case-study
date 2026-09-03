@@ -23,7 +23,9 @@
 ---
 
 ## 📄 Page 2: Hand-Drawable Physical & Logical Topology Diagram
-*(Sketch this diagram in the center of your page using a ruler. Use color coding if possible.)*
+*(Reference the Cisco Packet Tracer diagram below or sketch the schematic using a ruler. Use color coding if possible.)*
+
+![Cisco Packet Tracer Topology](cisco_packet_tracer_topology.jpg)
 
 ```
                      +------------------+

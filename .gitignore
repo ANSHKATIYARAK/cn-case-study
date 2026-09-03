@@ -3,3 +3,9 @@ package-lock.json
 temp.zip
 temp_extracted/
 extracted_text.txt
+*.docx
+*.pdf
+*.jpg
+*.jpeg
+~$*
+assignment_scans/
